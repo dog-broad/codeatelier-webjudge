@@ -1,0 +1,18 @@
+{
+  "name": "codeatelier-webjudge",
+  "version": "0.1.0",
+  "description": "Headless-browser grading service for CodeAtelier web (frontend) questions: renders a student's HTML/CSS/JS file set in real Chromium and evaluates declarative DOM assertions in page context.",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}
