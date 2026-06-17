@@ -62,28 +62,39 @@ export function compose(files) {
 }
 
 /**
- * Parse the actions DSL (one per line): `click <selector>` or
- * `type <selector> <value>`. Lines may also be separated by ';'.
+ * Parse the actions DSL. MUST stay identical to the practice parser in
+ * qtype_codeatelier/webruntime.js; the conformance corpus in test/ guards drift.
+ * Verbs: click/submit <selector>; type/select/check/key <selector> <value>;
+ * wait <ms>; wait-for <selector> [ms].
  *
  * @param {string} text
- * @returns {Array<{type:string,selector:string,value?:string}>}
+ * @returns {Array<{type:string,selector?:string,value?:string,ms?:string}>}
  */
 export function parseActions(text) {
   if (!text) {
     return [];
   }
+  const head = (rest) => {
+    const sp = rest.indexOf(' ');
+    return sp === -1 ? [rest, ''] : [rest.slice(0, sp), rest.slice(sp + 1).trim()];
+  };
   return String(text).split(/[\n;]+/).map((line) => line.trim()).filter(Boolean).map((line) => {
     const space = line.indexOf(' ');
     const verb = (space === -1 ? line : line.slice(0, space)).toLowerCase();
     const rest = space === -1 ? '' : line.slice(space + 1).trim();
-    if (verb === 'click') {
-      return { type: 'click', selector: rest };
+    if (verb === 'click' || verb === 'submit') {
+      return { type: verb, selector: rest };
     }
-    if (verb === 'type') {
-      const sp2 = rest.indexOf(' ');
-      return (sp2 === -1)
-        ? { type: 'type', selector: rest, value: '' }
-        : { type: 'type', selector: rest.slice(0, sp2), value: rest.slice(sp2 + 1) };
+    if (verb === 'type' || verb === 'select' || verb === 'check' || verb === 'key') {
+      const [sel, val] = head(rest);
+      return { type: verb, selector: sel, value: val };
+    }
+    if (verb === 'wait') {
+      return { type: 'wait', ms: rest };
+    }
+    if (verb === 'wait-for') {
+      const [sel, ms] = head(rest);
+      return { type: 'wait-for', selector: sel, ms: ms };
     }
     return null;
   }).filter(Boolean);

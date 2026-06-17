@@ -57,9 +57,12 @@ export async function grade(payload) {
       try {
         await page.setContent(doc, { waitUntil: 'load', timeout: navTimeout });
         for (const act of parseActions(a.actions)) {
+          // runAction returns a promise for wait/wait-for; page.evaluate awaits it.
           await page.evaluate(runAction, act);
         }
-        r = await page.evaluate(evalAssertion, a);
+        // A compound check carries its tree on `assertion`; else the flat leaf is
+        // the single node. evalAssertion handles either.
+        r = await page.evaluate(evalAssertion, a.assertion || a);
       } catch (e) {
         r = { pass: false, actual: null, error: String((e && e.message) || e) };
       } finally {
