@@ -6,9 +6,12 @@
 // evaluators are hand-kept mirrors; this corpus is the guard against drift —
 // if the judge diverges from the documented contract, a case here fails.
 
-import { test } from 'node:test';
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { grade } from '../src/grade.js';
+import { grade, closeBrowser } from '../src/grade.js';
+
+// grade() reuses a single headless browser; close it so the test process exits.
+after(async () => { await closeBrowser(); });
 
 const html = (body) => [{ name: 'index.html', content: '<!doctype html><html><body>' + body + '</body></html>' }];
 
@@ -69,7 +72,7 @@ const CASES = [
 ];
 
 for (const c of CASES) {
-  test(c.name, async () => {
+  test(c.name, { timeout: 30000 }, async () => {
     const assertions = c.checks.map(([a]) => a);
     const out = await grade({ files: c.files, assertions });
     c.checks.forEach(([a, expected], i) => {
